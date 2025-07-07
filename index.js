@@ -6,7 +6,7 @@ const app = express();
 app.use(cors());
 
 const auth = new google.auth.GoogleAuth({
-  keyFile: "service-account.json",
+  keyFile: "/etc/secrets/service-account.json",
   scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
 });
 
