@@ -1,13 +1,19 @@
+
 const express = require("express");
 const cors = require("cors");
 const { google } = require("googleapis");
+const process = require('node:process');
 const app = express();
 
 app.use(cors());
-
 const auth = new google.auth.GoogleAuth({
-  keyFile: "/etc/secrets/service-account.json",
+    // keyFile: 'service-account.json',
+  credentials: {
+    client_email: process.env.GOOGLE_CLIENT_EMAIL,
+    private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+  },
   scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
+
 });
 
 app.get("/", (req, res) => {
