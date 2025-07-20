@@ -1,9 +1,11 @@
 
+require('dotenv').config()
 const express = require("express");
 const cors = require("cors");
 const { google } = require("googleapis");
 const process = require('node:process');
 const app = express();
+
 
 app.use(cors());
 const auth = new google.auth.GoogleAuth({
@@ -47,6 +49,31 @@ app.get("/inventory", async (req, res) => {
       });
       return item;
     });
+
+      // Add price from pricecharting using productID
+      const apikey = process.env.PRICECHARTING_API_KEY;
+      
+      const enrichedData = await Promise.all(
+        data.map(async (item) => {
+            const id = item["Id"];
+            if (!id) {
+                item.marketValue = null;
+                return item;
+            }
+
+            const url = `https://www.pricecharting.com/api/product?t=${apikey}&id=${id}`;
+            try {
+                const response = await fetch(url);
+                const result = await response.json();
+
+                item.marketValue = result["loose-price"] ? result["loose-price"] / 100 : null;
+            } catch(err) {
+                console.error( `Failed to fetch for IS ${id}:`, err.message);
+                item.marketValue = null;
+            }
+            return item;
+        })
+      );
     res.json(data);
   } catch (err) {
     console.error(err); // Log error in console
